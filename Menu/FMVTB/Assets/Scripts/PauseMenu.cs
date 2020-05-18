@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
+//FATOU
 public class PauseMenu : MonoBehaviour
 {
     private bool gamePaused;

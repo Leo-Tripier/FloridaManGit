@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//FATOU
 public class MainMenu : MonoBehaviour
 {
     public void PlayGame()

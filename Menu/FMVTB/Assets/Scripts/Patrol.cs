@@ -6,6 +6,7 @@ using Pathfinding.Examples;
 using UnityEngine;
 using UnityEngine.Serialization;
 
+//FATOU
 public class Patrol : MonoBehaviour
 {
     public float speed;
@@ -14,10 +15,12 @@ public class Patrol : MonoBehaviour
 
     public bool goingRight = true;
     Vector3 placementGround;
-    private GameObject newGround;
+    public GameObject CeilingDetect;
     public GameObject groundDetectLeft;
+    private BoxCollider2D bc;
 
-    public float stopDistance;
+    public Animator anim;
+    public Rigidbody2D rb;
     private GameObject target;
 
     public bool flip = true;
@@ -26,41 +29,66 @@ public class Patrol : MonoBehaviour
 
     private void Start()
     {
-        placementGround = new Vector3(0f, transform.position.y, 0f);
-        newGround = Instantiate(groundDetectLeft, placementGround,
-            Quaternion.identity, gameObject.transform);
-
         target = GameObject.FindGameObjectWithTag("Player");
 
         gameObject.GetComponent<SpriteRenderer>().flipX = true;
+
+        bc = gameObject.GetComponent<BoxCollider2D>();
+
+        rb = gameObject.GetComponent<Rigidbody2D>();
+
+        anim = gameObject.GetComponent<Animator>();
     }
 
     private void Update()
     {
-        LookAtPlayer();
 
-        if (Vector2.Distance(transform.position, target.transform.position) < 100f)
+        if (target.transform.position.y - transform.position.y <= 5f)
         {
-            Following();
-            PlayerAttack();
+            if (goingRight)
+            {
+                if (target.transform.position.x - transform.position.x <= -0f && target.transform.position.x - transform.position.x >= 5f)
+                {
+                    PlayerAttack();
+                }
+                else
+                {
+                    Patrolling();
+                }
+            }
+            else
+            {
+                if (target.transform.position.x - transform.position.x >= 0f && target.transform.position.x - transform.position.x <= 5f)
+                {
+                    PlayerAttack();
+                }
+                else
+                {
+                    Patrolling();
+                }
+            }
         }
-        else if (Vector2.Distance(transform.position, target.transform.position) > 50f)
+        else
         {
             Patrolling();
         }
+        
     }
-    
+
     void PlayerAttack()
     {
-    if (isAttacking)
-    {
-        gameObject.GetComponent<Animator>().SetBool(EnemyAttack.id, true);
-        target.GetComponent<Stat>().HP -= damage;
-    }
-    else
-    {
-        gameObject.GetComponent<Animator>().SetBool(EnemyAttack.id, false);
-    }
+        LookAtPlayer();
+        
+        if (isAttacking)
+        {
+            rb.velocity = new Vector2(0f,0f);
+            anim.SetBool(EnemyAttack.id, true);
+            target.GetComponent<Stat>().HP -= damage;
+        }
+        else
+        {
+            anim.SetBool(EnemyAttack.id, false);
+        }
     }
 
     public void LookAtPlayer()
@@ -70,7 +98,7 @@ public class Patrol : MonoBehaviour
         if (transform.position.x > target.transform.position.x && !flip)
         {
             transform.localScale = flipped;
-            transform.Rotate(0f, 180f,0f);
+            transform.Rotate(0f, 180f, 0f);
             flip = true;
         }
         else if (transform.position.x < target.transform.position.x && flip)
@@ -83,19 +111,17 @@ public class Patrol : MonoBehaviour
 
     void Following()
     {
-        if (Vector2.Distance(transform.position,target.transform.position) > stopDistance)
-        {
-            transform.position = Vector2.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
-        }
+        transform.position = Vector2.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
     }
 
     void Patrolling()
     {
         transform.Translate(Vector2.right * speed * Time.deltaTime);
 
-        RaycastHit2D solGauche = Physics2D.Raycast(newGround.transform.position, Vector2.down);
+        RaycastHit2D solGauche = Physics2D.Raycast(groundDetectLeft.transform.position, Vector2.down, 2f);
 
         if (solGauche.collider == false)
+
         {
             if (goingRight)
             {
@@ -112,7 +138,7 @@ public class Patrol : MonoBehaviour
     }
     public void GetHurt(int damage)
     {
-        if (vie <= 0 )
+        if (vie <= 0)
         {
             Destroy(gameObject);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//FATOU
 public class ItemScript : MonoBehaviour
 {
     private Transform player;
@@ -15,7 +16,11 @@ public class ItemScript : MonoBehaviour
     // Update is called once per frame
     void OnTriggerEnter2D(Collider2D other)
     {
-        SceneManager.LoadScene("Boss");
-        Destroy(gameObject);
+        if (other.name == "Player")
+        {
+           SceneManager.LoadScene("Boss");
+           Destroy(gameObject); 
+        }
+        
     }
 }

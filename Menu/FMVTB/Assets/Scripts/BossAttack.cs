@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 //FATOU
-public class EnemyAttack : MonoBehaviour
+public class BossAttack : MonoBehaviour
 {
     public static int id;
     private void Start()
@@ -16,12 +15,15 @@ public class EnemyAttack : MonoBehaviour
     {
         if (other.gameObject.name.Equals("Player"))
         {
-            gameObject.GetComponent<Patrol>().isAttacking = true;
+            gameObject.GetComponent<Boss>().isAttacking = true;
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        gameObject.GetComponent<Patrol>().isAttacking = false;
+        if (other.gameObject.name.Equals("Player"))
+        {
+            gameObject.GetComponent<Boss>().isAttacking = false;
+        }
     }
 }
