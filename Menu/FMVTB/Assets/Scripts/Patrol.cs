@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using Pathfinding.Examples;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -10,22 +9,21 @@ using UnityEngine.Serialization;
 public class Patrol : MonoBehaviour
 {
     public float speed;
-    public int vie = 60;
-    public int damage = 10;
+    public int vie = 30;
+    public int damage = 3;
 
     public bool goingRight = true;
-    Vector3 placementGround;
-    public GameObject CeilingDetect;
     public GameObject groundDetectLeft;
-    private BoxCollider2D bc;
 
     public Animator anim;
     public Rigidbody2D rb;
     private GameObject target;
+    private Stat stat;
 
     public bool flip = true;
 
     public bool isAttacking;
+    private static readonly int Attack = Animator.StringToHash("Attack");
 
     private void Start()
     {
@@ -33,43 +31,34 @@ public class Patrol : MonoBehaviour
 
         gameObject.GetComponent<SpriteRenderer>().flipX = true;
 
-        bc = gameObject.GetComponent<BoxCollider2D>();
-
         rb = gameObject.GetComponent<Rigidbody2D>();
 
         anim = gameObject.GetComponent<Animator>();
+
+        stat = target.GetComponent<Stat>();
     }
 
     private void Update()
     {
 
-        if (target.transform.position.y - transform.position.y <= 5f)
+        if (Math.Abs(target.transform.position.y - transform.position.y) <= 3f)
         {
-            if (goingRight)
+            if (Math.Abs(target.transform.position.x - transform.position.x) <= 5f)
             {
-                if (target.transform.position.x - transform.position.x <= -0f && target.transform.position.x - transform.position.x >= 5f)
-                {
-                    PlayerAttack();
-                }
-                else
-                {
-                    Patrolling();
-                }
+                LookAtPlayer();
+                anim.SetBool(Attack, true);
+                
+                PlayerAttack();
             }
             else
             {
-                if (target.transform.position.x - transform.position.x >= 0f && target.transform.position.x - transform.position.x <= 5f)
-                {
-                    PlayerAttack();
-                }
-                else
-                {
-                    Patrolling();
-                }
+                anim.SetBool(Attack, false);
+                Patrolling();
             }
         }
         else
         {
+            anim.SetBool(Attack, false);
             Patrolling();
         }
         
@@ -81,13 +70,15 @@ public class Patrol : MonoBehaviour
         
         if (isAttacking)
         {
-            rb.velocity = new Vector2(0f,0f);
-            anim.SetBool(EnemyAttack.id, true);
-            target.GetComponent<Stat>().HP -= damage;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            anim.SetBool(Attack, true);
+
+            stat.TakeDamage(damage);
         }
         else
         {
-            anim.SetBool(EnemyAttack.id, false);
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation & RigidbodyConstraints2D.FreezePositionY;
+            anim.SetBool(Attack, false);
         }
     }
 
@@ -107,11 +98,6 @@ public class Patrol : MonoBehaviour
             transform.Rotate(0f, 180f, 0f);
             flip = false;
         }
-    }
-
-    void Following()
-    {
-        transform.position = Vector2.MoveTowards(transform.position, target.transform.position, speed * Time.deltaTime);
     }
 
     void Patrolling()

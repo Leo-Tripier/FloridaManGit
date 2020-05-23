@@ -8,25 +8,43 @@ public class Boss : MonoBehaviour
 {
 
     public int vie = 500;
-    public int damage = 5;
-    public float speed = 5f;
+    public int damage = 3;
+    public float speed = 3f;
 
-    Transform player;
+    private Transform player;
+    private Stat stat;
+    private Rigidbody2D rb;
+    private Animator anim;
 
     public bool flip = false;
 
     public bool isAttacking;
+    private static readonly int Attacking = Animator.StringToHash("Attacking");
 
     private void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        stat = player.GetComponent<Stat>();
+        rb = gameObject.GetComponent<Rigidbody2D>();
+        anim = gameObject.GetComponent<Animator>();
     }
 
     void Update()
     {
         LookAtPlayer();
+
+        if (Math.Abs(player.transform.position.x - transform.position.x) <= 3f)
+        {
+            anim.SetBool(Attacking, true);
+            Attack();
+        }
+        else
+        {
+            anim.SetBool(Attacking, false);
+            Following();
+        }
+        
         Following();
-        Attack();
     }
 
     public void LookAtPlayer()
@@ -59,20 +77,27 @@ public class Boss : MonoBehaviour
     
     void Following()
     {
-        transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
+        if (Math.Abs(player.transform.position.y - transform.position.y) >= 3f)
+        {
+            transform.position = Vector2.MoveTowards(transform.position, player.position, speed * Time.deltaTime);
+        }
+        
     }
 
     void Attack()
     {
-        if (isAttacking)
+        if (isAttacking & stat.alive)
         {
-            gameObject.GetComponent<Animator>().SetBool(BossAttack.id, true);
-            player.GetComponent<Stat>().HP -= damage;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+            
+            anim.SetBool(Attacking, true);
+            stat.TakeDamage(damage);
         }
         else
         {
-            gameObject.GetComponent<Animator>().SetBool(BossAttack.id, false);
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation & RigidbodyConstraints2D.FreezePositionY;
+            
+            anim.SetBool(Attacking, false);
         }
     }
-
 }
