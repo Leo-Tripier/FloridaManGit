@@ -14,23 +14,35 @@ public class Player_Control : MonoBehaviour
 
     private Rigidbody2D rb2d;
     private BoxCollider2D BoxCollider;
+    private Stat Player_stat;
     [SerializeField] private LayerMask plateformLayerMask;
     public GameObject Projectile;
+    public GameObject Projectile2;
+    public int knockback;
     public GameObject FirePoint;
     public float jump_speed = 10f;
     public float run_speed = 5f;
     public float gravity_modifier = 0.01f;
     private bool air_jump;
+    private bool triple_jump;
+    private bool can_primary_fire;
+    private bool can_secondary_fire;
+    private bool dash;
     private bool grounded;
     private string orientation;
     private string aiming;
-    
+    public Inventory Inventory;
+    public DataBase DataBase;
+
 
     // Start is called before the first frame update
     void Start()
     {
         orientation = "right";
         aiming = "strait";
+        can_secondary_fire = true;
+        can_primary_fire = true;
+        Player_stat = gameObject.GetComponent<Stat>();
         rb2d = gameObject.GetComponent<Rigidbody2D>();
         BoxCollider = transform.GetComponent<BoxCollider2D>();
     }
@@ -52,8 +64,6 @@ public class Player_Control : MonoBehaviour
         // Movement test
         if (grounded)
         {
-            rb2d.velocity = Vector2.zero;
-            
             if (Input.GetKey(KeyCode.Q))
             {
                 if (orientation == "right")
@@ -108,20 +118,35 @@ public class Player_Control : MonoBehaviour
                 rb2d.velocity -= rb2d.velocity.x * Vector2.right;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.LeftShift) && Inventory.IsInInventory(DataBase.FindItem(4)))
+        {
+            Dash();
+        }
         // End of Movement test
         
         // Jump test
         if (Input.GetKey(KeyCode.Space) && grounded)
         {
-            rb2d.velocity += Vector2.up * jump_speed;
+            rb2d.velocity = new Vector2(rb2d.velocity.x,jump_speed);
             grounded = false ;
             air_jump = true;
         }
         
         else if (Input.GetKeyDown(KeyCode.Space) && air_jump)
         {
-            rb2d.velocity += Vector2.up * (1.5f * jump_speed);
+            rb2d.velocity = new Vector2(rb2d.velocity.x, 1.5f * jump_speed);
             air_jump = false;
+            if (Inventory.IsInInventory(DataBase.FindItem(3)))
+            {
+                triple_jump = true;
+            }
+        }
+        
+        else if (Input.GetKeyDown(KeyCode.Space) && triple_jump)
+        {
+            rb2d.velocity = new Vector2(rb2d.velocity.x, 1.25f * jump_speed);
+            triple_jump = false;
         }
 
         if (Input.GetKeyUp(KeyCode.Space) && rb2d.velocity.y > 0f)
@@ -164,10 +189,67 @@ public class Player_Control : MonoBehaviour
         // End Aim test
 
         // Fire Test
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            StartCoroutine(primary_fire());
+        }
+
         if (Input.GetKeyDown(KeyCode.Mouse1))
         {
-            Instantiate(Projectile, FirePoint.transform.position, FirePoint.transform.rotation);
+            StartCoroutine(secondary_fire());
         }
         // End fire test
+    }
+
+    IEnumerator primary_fire()
+    {
+        if (can_primary_fire)
+        {
+            Instantiate(Projectile, FirePoint.transform.position, FirePoint.transform.rotation);
+            can_primary_fire = false;
+            yield return new WaitForSeconds(0.1f);
+            can_primary_fire = true;
+        }
+    }
+
+    IEnumerator secondary_fire()
+    {
+        if (can_secondary_fire)
+        {
+            Instantiate(Projectile2, FirePoint.transform.position, FirePoint.transform.rotation);
+            rb2d.velocity += Vector2.left * knockback;
+            can_secondary_fire = false;
+            yield return  new WaitForSeconds(0.25f);
+            rb2d.velocity = Vector2.zero;
+            yield return new WaitForSeconds(0.25f);
+            can_secondary_fire = true;
+        }
+    }
+
+    IEnumerator Dash()
+    {
+        if (dash)
+        {
+            if (rb2d.velocity.x >= 0)
+            {
+                rb2d.velocity += Vector2.right * run_speed;
+                dash = false;
+                Player_stat.can_be_damaged = false;
+                yield return new WaitForSeconds(0.10f);
+                dash = true;
+                Player_stat.can_be_damaged = true;
+                rb2d.velocity -= Vector2.right * run_speed;
+            }
+            else if (rb2d.velocity.x < 0)
+            {
+                rb2d.velocity += Vector2.left * run_speed;
+                dash = false;
+                Player_stat.can_be_damaged = false;
+                yield return new WaitForSeconds(0.10f);
+                dash = true;
+                Player_stat.can_be_damaged = true;
+                rb2d.velocity -= Vector2.left * run_speed;
+            }
+        }
     }
 }
