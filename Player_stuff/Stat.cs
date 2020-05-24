@@ -20,7 +20,7 @@ public class Stat : MonoBehaviour
         can_be_damaged = true;
     }
 
-    IEnumerator TakeDamage(int damage)
+    public IEnumerator TakeDamage(int damage)
     {
         if (can_be_damaged)
         {

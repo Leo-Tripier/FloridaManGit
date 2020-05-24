@@ -8,12 +8,18 @@ public class NewBehaviourScript : MonoBehaviour
     public BoxCollider2D Collider2D;
     public int damage;
 
-    private void OnTriggerEnter(Collider other)
+    private void Start()
     {
-        StartCoroutine(deal_damage(other));
+        StartCoroutine(Shot());
     }
 
-    IEnumerator deal_damage(Collider other)
+    IEnumerator Shot()
+    {
+        yield return new  WaitForSeconds(0.25f);
+        Destroy(gameObject);
+    }
+
+    private void OnTriggerEnter(Collider other)
     {
         Patrol info = other.GetComponent<Patrol>();
         if (info != null)
@@ -26,7 +32,6 @@ public class NewBehaviourScript : MonoBehaviour
         {
             boss.GetHurt(damage);
         }
-        yield return new WaitForSeconds(0.25f);
-        Destroy(gameObject);
+        damage = 0;
     }
 }

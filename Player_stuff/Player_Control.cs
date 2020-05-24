@@ -18,21 +18,26 @@ public class Player_Control : MonoBehaviour
     [SerializeField] private LayerMask plateformLayerMask;
     public GameObject Projectile;
     public GameObject Projectile2;
-    public int knockback;
     public GameObject FirePoint;
+
+    public float knockback = 3f;
     public float jump_speed = 10f;
     public float run_speed = 5f;
     public float gravity_modifier = 0.01f;
+    
     private bool air_jump;
     private bool triple_jump;
-    private bool can_primary_fire;
-    private bool can_secondary_fire;
+    private bool can_fire;
+    
     private bool dash;
     private bool grounded;
+
     private string orientation;
     private string aiming;
     public Inventory Inventory;
     public DataBase DataBase;
+    
+    private Animator anim;
 
 
     // Start is called before the first frame update
@@ -40,11 +45,11 @@ public class Player_Control : MonoBehaviour
     {
         orientation = "right";
         aiming = "strait";
-        can_secondary_fire = true;
-        can_primary_fire = true;
+        can_fire = true;
         Player_stat = gameObject.GetComponent<Stat>();
         rb2d = gameObject.GetComponent<Rigidbody2D>();
         BoxCollider = transform.GetComponent<BoxCollider2D>();
+        anim = gameObject.GetComponent<Animator>();
     }
 
     // Update is called once per frame
@@ -52,7 +57,7 @@ public class Player_Control : MonoBehaviour
     {
         // Test if the object is grounded
         RaycastHit2D hit = Physics2D.Raycast(BoxCollider.bounds.center, Vector2.down, 
-            BoxCollider.bounds.extents.y + 0.08f , plateformLayerMask);
+            BoxCollider.bounds.extents.y + 0.1f , plateformLayerMask);
         grounded = hit.collider;
         // End of the test
 
@@ -64,8 +69,12 @@ public class Player_Control : MonoBehaviour
         // Movement test
         if (grounded)
         {
+            rb2d.velocity = Vector2.zero;
+            anim.SetBool("Is_Walking",false);
             if (Input.GetKey(KeyCode.Q))
             {
+                anim.SetBool("Is_Walking",true);
+                anim.SetBool("Is_Attacking",false);
                 if (orientation == "right")
                 {
                     orientation = "left";
@@ -82,6 +91,8 @@ public class Player_Control : MonoBehaviour
 
             else if(Input.GetKey(KeyCode.D))
             {
+                anim.SetBool("Is_Walking", true);
+                anim.SetBool("Is_Attacking",false);
                 if (orientation == "left")
                 {
                     orientation = "right";
@@ -121,7 +132,7 @@ public class Player_Control : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.LeftShift) && Inventory.IsInInventory(DataBase.FindItem(4)))
         {
-            Dash();
+            StartCoroutine(Dash());
         }
         // End of Movement test
         
@@ -203,26 +214,35 @@ public class Player_Control : MonoBehaviour
 
     IEnumerator primary_fire()
     {
-        if (can_primary_fire)
+        if (can_fire)
         {
+            can_fire = false;
+            anim.SetBool("Is_Attacking",true);
+            yield return new WaitForSeconds(0.2f);
             Instantiate(Projectile, FirePoint.transform.position, FirePoint.transform.rotation);
-            can_primary_fire = false;
-            yield return new WaitForSeconds(0.1f);
-            can_primary_fire = true;
+            can_fire = true;
         }
     }
 
     IEnumerator secondary_fire()
     {
-        if (can_secondary_fire)
+        if (can_fire)
         {
+            anim.SetBool("Is_Attacking",true);
+            can_fire = false;
+            if (orientation == "right")
+            {
+                rb2d.velocity = Vector2.left * knockback;
+            }
+            else
+            {
+                rb2d.velocity = Vector2.right * knockback; 
+            }
             Instantiate(Projectile2, FirePoint.transform.position, FirePoint.transform.rotation);
-            rb2d.velocity += Vector2.left * knockback;
-            can_secondary_fire = false;
             yield return  new WaitForSeconds(0.25f);
             rb2d.velocity = Vector2.zero;
             yield return new WaitForSeconds(0.25f);
-            can_secondary_fire = true;
+            can_fire = true;
         }
     }
 
@@ -230,6 +250,7 @@ public class Player_Control : MonoBehaviour
     {
         if (dash)
         {
+            anim.SetBool("Dashing",true);
             if (rb2d.velocity.x >= 0)
             {
                 rb2d.velocity += Vector2.right * run_speed;
@@ -250,6 +271,7 @@ public class Player_Control : MonoBehaviour
                 Player_stat.can_be_damaged = true;
                 rb2d.velocity -= Vector2.left * run_speed;
             }
+            anim.SetBool("Dashing",false);
         }
     }
 }
