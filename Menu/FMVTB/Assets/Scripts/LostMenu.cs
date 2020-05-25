@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+//FATOU
 public class LostMenu : MonoBehaviour
 {
     public GameObject menu;
