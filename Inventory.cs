@@ -1,23 +1,34 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.Internal.Experimental.UIElements;
 using UnityEngine.UI;
-
+// Auteur = Simon Zakeyh
 public class Inventory : MonoBehaviour
 {
-    public GameObject slots;
+    public int coins;
+
+    public int currency;
     
+    public GameObject slots;
+
     public List<GameObject> slotlist = new List<GameObject>();
     
     public List<ItemClass> inventory = new List<ItemClass>();
 
     private DataBase data;
 
-    private int x = -127;
-    private int y = 129;
+    private float x;
+    private float y;
     // Start is called before the first frame update
     void Start()
     {
+        var position = this.gameObject.transform.position;
+        var scale = this.gameObject.transform.lossyScale;
+        x = -381;
+        y = 175;
         data = GameObject.FindGameObjectWithTag("Database").GetComponent<DataBase>();
         int slotcount = 0;
         for (int i = 0; i < 5; i++) // cette double boucle remplit l'inventaire d'objets vides, et affiche un inventaire vide
@@ -29,38 +40,32 @@ public class Inventory : MonoBehaviour
                 slot.GetComponent<SlotScript>().index = slotcount; // attribue au slot sa place dans linventaire (de gauche à droite puis de haut en bas)
                 slot.name = "Slot [ " + i + " ; " + j + " ]"; // donne un joli nom reconnaissable au slot dans unity
                 slotlist.Add(slot);                           // ajoute le slot a la liste des slots
-                inventory.Add(data.itemlist[0]);              // le slot contient initialement un objet vide
+                inventory.Add(data.Itemlist[0]);              // le slot contient initialement un objet vide
                 
-                //Debug.Log(inventory[slotcount].name);  //check si l'inventaire est rempli d'objets "empty"
+                Debug.Log(inventory[slotcount].name);  //check si l'inventaire est rempli d'objets "empty"
                 
-                x += 65;                                      
+                x += 575*scale.x;                                      
                 slotcount++;
                 
             }
 
-            y -= 65;
-            x = -127;                                     // on modifie les variables x et y pour que les slots ne soient pas affichés superposés
+            y -= 125*scale.y;
+            x = -381; // on modifie les variables x et y pour que les slots ne soient pas affichés superposés
         }
-        
-        AddItem(2);
-        Debug.Log(inventory[0].name); // teste si l'objet a bien été ajouté
-        Debug.Log(inventory[0].sprite); //teste si la ressource a été chargée
+        coins = 0;
+        currency = 0;
     }
 
     public void AddItem(int id) //ajoute l'item avec l'id spécifié à l'inventaire 
     {
         int i = 0;
-        while ( i < data.itemlist.Count && data.itemlist[i].id != id )
+        while ( i < data.Itemlist.Count && data.Itemlist[i].id != id )
         {
             i++;
         }
-        ItemClass item = data.itemlist[i];
-        int index = ReplaceEmptyWith(item);
-        if (index >= 0)
-        {
-            Image image = slotlist[index].gameObject.transform.GetChild(0).GetComponent<Image>();
-           
-        }
+        ItemClass item = data.Itemlist[i];
+        ReplaceEmptyWith(item);
+       
     }
 
     private int ReplaceEmptyWith(ItemClass item) // remplace le premier objet vide par l'objet spécifié
@@ -82,5 +87,35 @@ public class Inventory : MonoBehaviour
         {
             return -1;
         }
+    }
+
+    public bool IsInInventory(string name)
+    {
+        int l = inventory.Count;
+        int count = 0;
+        while (count < l && inventory[count].name != name)
+        {
+            count++;
+        }
+
+        return !(count >= l);
+    }
+
+    public bool IsInInventory(int id)
+    {
+        int l = inventory.Count;
+        int count = 0;
+        while (count < l && inventory[count].id != id)
+        {
+            count++;
+        }
+
+        return !(count >= l);
+    }
+
+    public void VaryMoney(int varcoin, int varcurrency)
+    {
+        coins += varcoin;
+        currency += varcurrency;
     }
 }

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// Auteur = Simon Zakeyh
+
 // cette classe code les Objets items, base de la structure d'itemization
 // il est fortement possible que d'autres attributs soient ajoutés dans le temps
 public class ItemClass

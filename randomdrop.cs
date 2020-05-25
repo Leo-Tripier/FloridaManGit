@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Random = System.Random;
 
+// Auteur = Simon Zakeyh
+
 public class randomdrop : MonoBehaviour
 {
     public Inventory inventory;
@@ -15,7 +17,7 @@ public class randomdrop : MonoBehaviour
         data = GameObject.FindGameObjectWithTag("Database").GetComponent<DataBase>();
         inventory = GameObject.FindGameObjectWithTag("Inventory").GetComponent<Inventory>();
         r = new Random();
-        range = data.itemlist.Count;
+        range = data.Itemlist.Count;
         Debug.Log(range);
     }
 

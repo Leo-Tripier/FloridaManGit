@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
+// Auteur = Simon Zakeyh
+
 // cette classe code un "slot" d'inventaire, son comportement. elle doit être liée a la prefab "slot"
 public class SlotScript : MonoBehaviour, IPointerDownHandler , IPointerEnterHandler
 {
